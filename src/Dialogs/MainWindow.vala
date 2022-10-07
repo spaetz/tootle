@@ -18,7 +18,7 @@ public class Tootle.Dialogs.MainWindow: Adw.ApplicationWindow, Saveable {
 		on_zoom_level_changed ();
 	}
 
-	public MainWindow (Gtk.Application app) {
+	public MainWindow (Adw.Application app) {
 		Object (
 			application: app,
 			icon_name: Build.DOMAIN,
