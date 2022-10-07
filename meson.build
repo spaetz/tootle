@@ -1,4 +1,4 @@
-project('com.github.bleakgrey.tootle', 'vala', 'c', version: '2.0-alpha2')
+project('com.github.bleakgrey.tootle', 'vala', 'c', version: '2.0-alpha3')
 
 add_global_arguments([
         '-DGETTEXT_PACKAGE="@0@"'.format(meson.project_name()),
@@ -14,8 +14,8 @@ config.set('VERSION', meson.project_version())
 config.set('PREFIX', get_option('prefix'))
 config.set('NAME', 'Tootle')
 config.set('WEBSITE', 'https://github.com/bleakgrey/tootle')
-config.set('SUPPORT_WEBSITE', 'https://github.com/bleakgrey/tootle/issues')
-config.set('COPYRIGHT', '© 2018-2021 bleak_grey')
+config.set('SUPPORT_WEBSITE', 'https://github.com/spaetz/tootle/issues')
+config.set('COPYRIGHT', '© 2018-2021 bleak_grey\n© 2022 spaetz & contributors')
 
 gnome = import('gnome')
 i18n = import('i18n')
