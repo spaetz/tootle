@@ -169,11 +169,23 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 		accounts.activate (account);
 	}
 
-	public void redirect (string uri) {
-		present ();
-		message (@"Received uri: $uri");
 
-		var query = new Soup.URI (uri).get_query ();
+	[Description(nick="Redirect after successful authentication", blurb="is passed the auth code in URI form, enters it on the dialog and presses 'next'")]
+	public void redirect (string uri_string) {
+	        /* uri string looks like:
+		   tootle://auth_code/?code=HqdAmXX3btclKADRP9gOeqmf7Sqc2
+		*/
+		present ();
+		message (@"Received auth code uri: $uri_string");
+
+		Uri uri;
+		try {
+		    uri = Uri.parse (uri_string, UriFlags.NONE);
+		} catch (GLib.UriError e) {
+		    oopsie (e.message);
+		    return;
+		}
+		var query = uri.get_query ();
 		var split = query.split ("=");
 		var code = split[1];
 
@@ -181,6 +193,7 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 		is_working = false;
 		on_next_clicked ();
 	}
+
 
 	[GtkCallback]
 	void on_next_clicked () {
