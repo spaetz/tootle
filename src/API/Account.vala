@@ -32,16 +32,21 @@ public class Tootle.API.Account : Entity, Widgetizable {
             return "@" + acct;
         }
     }
-	public string domain {
-		owned get {
-			var uri = new Soup.URI (url);
-			return uri.get_host ();
-		}
-	}
 
-	public static Account from (Json.Node node) throws Error {
-		return Entity.from_json (typeof (API.Account), node) as API.Account;
+    public string domain {
+      owned get {
+	try {
+	  var uri = GLib.Uri.parse (url, UriFlags.NONE);
+	  return uri.get_host ();
+	} catch ( UriError e ) {
+	  return "";
 	}
+      }
+    }
+
+    public static Account from (Json.Node node) throws Error {
+      return Entity.from_json (typeof (API.Account), node) as API.Account;
+    }
 
     public bool is_self () {
         return id == accounts.active.id;
