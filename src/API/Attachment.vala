@@ -2,10 +2,18 @@ public class Tootle.API.Attachment : Entity, Widgetizable {
 
 	public string id { get; set; }
 	public string kind { get; set; default = "unknown"; }
+	
+	[Description(nick = "The URL of the attachment",
+	    blurb = "The URL from which the attachment can be downloaded")]
 	public string url { get; set; }
+
 	public string? description { get; set; }
+	
 	/* internal representation of preview url */
 	private string? i_preview_url { get; set; }
+	
+	[Description(nick = "The preview URL of the attachment",
+	    blurb = "If this is non-empty it currently indicates an image attachment. Right now, it will hand back the `url` if there is no preview_url")]
 	public string? preview_url {
 		set { this.i_preview_url = value; }
 		get { return (bool.parse( this.i_preview_url )) ?
