@@ -58,7 +58,8 @@ public class Tootle.HtmlUtils {
 
 	public static string uri_encode (string str) {
 		var restored = Widgets.RichLabel.restore_entities (str);
-		return Soup.URI.encode (restored, ";&+");
+		return Uri.escape_string(restored);
+		/* libsoup did extra_encode of: ";&+". TODO Check if required? */
 	}
 
 }
