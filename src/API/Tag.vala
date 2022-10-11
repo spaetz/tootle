@@ -10,7 +10,7 @@ public class Tootle.API.Tag : Entity, Widgetizable {
 	}
 
 	public override Widget to_widget () {
-		var encoded = Soup.URI.encode (name, null);
+		var encoded = Uri.escape_string (name);
 		var w = new Widgets.RichLabel (@"<a href=\"$(accounts.active.instance)/tags/$encoded\">#$name</a>");
 		w.halign = Align.START;
 		w.show ();
