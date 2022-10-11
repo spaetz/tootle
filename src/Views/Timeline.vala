@@ -86,13 +86,8 @@ public class Tootle.Views.Timeline : AccountHolder, Streamable, Views.ContentBas
 		.with_ctx (this)
 		.then ((sess, msg) => {
 			Network.parse_array (msg, node => {
-				try {
-					var e = entity_cache.lookup_or_insert (node, accepts);
-					model.append (e); //FIXME: use splice();
-				}
-				catch (Error e) {
-					warning (@"Timeline item parse error: $(e.message)");
-				}
+			    var e = entity_cache.lookup_or_insert (node, accepts);
+			    model.append (e); //FIXME: use splice();
 			});
 
 			get_pages (msg.response_headers.get_one ("Link"));
