@@ -33,13 +33,13 @@ public class Tootle.Network : GLib.Object {
 			return;
 
 		switch (msg.status_code) {
-			case Soup.Status.CANCELLED:
+			case GLib.IOError.CANCELLED:
 			case Soup.Status.OK:
 				return;
 		}
 
 		debug ("Cancelling message");
-		session.cancel_message (msg, Soup.Status.CANCELLED);
+		session.cancel_message (msg, GLib.IOError.CANCELLED);
 	}
 
 	public void queue (owned Soup.Message mess, owned SuccessCallback cb, owned ErrorCallback ecb) {
