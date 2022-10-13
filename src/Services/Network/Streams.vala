@@ -54,7 +54,7 @@ public class Tootle.Streams : Object {
 
 		public string name {
 			owned get {
-				var url = msg.get_uri ().to_string (false);
+				var url = msg.get_uri ().to_string ();
 				return url.slice (0, url.last_index_of ("&access_token"));
 			}
 		}
