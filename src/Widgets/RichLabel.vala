@@ -76,7 +76,7 @@ public class Tootle.Widgets.RichLabel : Adw.Bin {
 
 		if ("/tags/" in url) {
 			var encoded = url.split ("/tags/")[1];
-			var tag = Soup.URI.decode (encoded);
+			var tag = Uri.unescape_string (encoded);
 			app.main_window.open_view (new Views.Hashtag (tag));
 			return true;
 		}
