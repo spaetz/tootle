@@ -84,13 +84,13 @@ public class Tootle.Views.Timeline : AccountHolder, Streamable, Views.ContentBas
 		var req = append_params (new Request.GET (get_req_url ()))
 		.with_account (account)
 		.with_ctx (this)
-		.then ((sess, msg) => {
-			Network.parse_array (msg, node => {
+		.then ((sess, req) => {
+			Network.parse_array (req, node => {
 			    var e = entity_cache.lookup_or_insert (node, accepts);
 			    model.append (e); //FIXME: use splice();
 			});
 
-			get_pages (msg.response_headers.get_one ("Link"));
+			get_pages (req.msg.response_headers.get_one ("Link"));
 			on_content_changed ();
 			on_request_finish ();
 		})

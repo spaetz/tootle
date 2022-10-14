@@ -149,7 +149,7 @@ public abstract class Tootle.AccountStore : GLib.Object {
 			throw new Oopsie.INTERNAL ("This instance is unsupported.");
 		else {
 			account.backend = backend;
-			message (@"$(account.instance) is using $(account.backend)");
+			message (@"$(account.instance.to_string()) is using $(account.backend)");
 		}
 	}
 

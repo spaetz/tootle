@@ -66,7 +66,7 @@ public class Tootle.Streams : Object {
 
 		public bool start () {
 			message (@"Opening stream: $name");
-			network.session.websocket_connect_async.begin (msg, null, null, null, (obj, res) => {
+			network.session.websocket_connect_async.begin (msg, null, null, 0, new Cancellable(), (obj, res) => {
 				socket = network.session.websocket_connect_async.end (res);
 				socket.error.connect (on_error);
 				socket.closed.connect (on_closed);

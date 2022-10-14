@@ -16,7 +16,7 @@ public class Tootle.Views.List : Views.Timeline {
     public override string? get_stream_url () {
         if (list == null)
             return null;
-        return account != null ? @"$(account.instance)/api/v1/streaming/?stream=list&list=$(list.id)&access_token=$(account.access_token)" : null;
+        return account != null ? @"$(account.instance.to_string())/api/v1/streaming/?stream=list&list=$(list.id)&access_token=$(account.access_token)" : null;
     }
 
 }

@@ -9,59 +9,60 @@ public class Tootle.Network : GLib.Object {
 	public signal void finished ();
 
 	public delegate void ErrorCallback (int32 code, string reason);
-	public delegate void SuccessCallback (Session session, Message msg) throws Error;
-	public delegate void NodeCallback (Json.Node node, Message msg) throws Error;
+	public delegate void SuccessCallback (Session session, Tootle.Request req) throws Error;
+	public delegate void NodeCallback (Json.Node node, Tootle.Request req) throws Error;
 	public delegate void ObjectCallback (Json.Object node) throws Error;
 
 	public Soup.Session session { get; set; }
+	// count the number of currently queue requests
 	int requests_processing = 0;
 
 	construct {
-		session = new Soup.Session () {
-			ssl_strict = true,
-			ssl_use_system_ca_file = true
-		};
-		session.request_unqueued.connect (msg => {
-			requests_processing--;
-			if (requests_processing <= 0)
-				finished ();
-		});
+	  session = new Soup.Session ();
+
+	  session.request_queued.connect (msg => {
+	      if (requests_processing == 0) { started (); };
+	      requests_processing++;
+	  });
+
+	  session.request_unqueued.connect (msg => {
+	      requests_processing--;
+	      if (requests_processing <= 0) { finished (); };
+	  });
 	}
 
-	public void cancel (Soup.Message? msg) {
-		if (msg == null)
-			return;
+	public async void queue (owned Tootle.Request request, owned SuccessCallback cb, owned ErrorCallback ecb) {
+		message (@"Queuing $(request.method): $(request.uri.to_string())");
 
-		switch (msg.status_code) {
-			case GLib.IOError.CANCELLED:
-			case Soup.Status.OK:
-				return;
-		}
-
-		debug ("Cancelling message");
-		session.cancel_message (msg, GLib.IOError.CANCELLED);
-	}
-
-	public void queue (owned Soup.Message mess, owned SuccessCallback cb, owned ErrorCallback ecb) {
-		requests_processing++;
-		started ();
-
-		message (@"$(mess.method): $(mess.uri.to_string (false))");
-
+		  // we discard the resulting MsgBody (Bytes) here, it needs to be handled in our callback
 		try {
-			session.queue_message (mess, (sess, msg) => {
-				var status = msg.status_code;
-				if (status == Soup.Status.OK)
-					cb (session, msg);
-				else if (status == Soup.Status.CANCELLED)
-					debug ("Message is cancelled. Ignoring callback invocation.");
-				else
-					ecb ((int32) status, msg.reason_phrase);
-			});
+		  request.response_body = yield session.send_and_read_async(request.msg, 0, request.cancellable);
+		} catch (Error e) {
+		  warning (@"Exception in network queue: $(e.message)");
+		  ecb (0, e.message);
 		}
-		catch (Error e) {
-			warning (@"Exception in network queue: $(e.message)");
-			ecb (0, e.message);
+		  
+		var status = request.msg.status_code;
+		if (status == Soup.Status.OK) {
+		  if (request.cb != null) {
+		    try {
+		      request.cb (session, request);
+		    } catch (Error e) {
+		      warning (@"Error when executing message callback: $(e.message)");
+		      ecb (0, e.message);
+		    }
+		  };
+		} else if (request.cancellable.is_cancelled()) {
+		  debug ("Message was cancelled. Ignoring callback invocation.");
+		} else {
+		  if (request.error_cb != null) {
+		    try {
+		      request.error_cb ((int32) status, request.msg.reason_phrase);
+		    } catch (Error e) {
+		      warning (@"Error when executing message error callback: $(e.message)");
+		      ecb (0, e.message);
+		    }
+		  }
 		}
 	}
 
@@ -70,22 +71,27 @@ public class Tootle.Network : GLib.Object {
 		app.toast (message);
 	}
 
-	public Json.Node parse_node (Soup.Message msg) throws Error {
+	public Json.Node parse_node (Tootle.Request req) throws Error {
 		var parser = new Json.Parser ();
-		parser.load_from_data ((string) msg.response_body.flatten ().data, -1);
+		parser.load_from_data ((string)req.response_body, -1);
 		return parser.get_root ();
 	}
 
-	public Json.Object parse (Soup.Message msg) throws Error {
-		return parse_node (msg).get_object ();
+	public Json.Object parse (Tootle.Request req) throws Error {
+		return parse_node (req).get_object ();
 	}
 
-	public static void parse_array (Soup.Message msg, owned NodeCallback cb) throws Error {
-		var parser = new Json.Parser ();
-		parser.load_from_data ((string) msg.response_body.flatten ().data, -1);
-		parser.get_root ().get_array ().foreach_element ((array, i, node) => {
-			cb (node, msg);
-		});
+	public static void parse_array (Tootle.Request req, owned NodeCallback cb) throws Error {
+	  var parser = new Json.Parser ();
+	  parser.load_from_data ((string) req.response_body, -1);
+	  parser.get_root ().get_array ().foreach_element ((array, i, node) => {
+	      try {
+		cb (node, req);
+	      } catch (Error e) {
+		warning (@"Error when parsing response Array: $(e.message)");
+		req.error_cb (0, e.message);
+	      }
+	    });
 	}
 
 }

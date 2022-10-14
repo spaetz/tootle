@@ -63,7 +63,7 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 
 	void reset () {
 		message ("Reset state");
-		account = new InstanceAccount.empty (account.instance);
+		account = new InstanceAccount.empty (account.instance.to_string());
 		deck.visible_child = instance_step;
 	}
 
@@ -100,25 +100,25 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 			.replace (":", "")
 			.replace ("https", "")
 			.replace ("http", "");
-		account.instance = "https://"+str;
+		account.instance = GLib.Uri.parse("https://"+str, UriFlags.NONE);
 		instance_entry.text = str;
 
-		if (str.char_count () <= 0 || !("." in account.instance))
-			throw new Oopsie.USER (_("Please enter a valid instance URL"));
+		if (str.char_count () <= 0 || !("." in account.instance.to_string()))
+		  throw new Oopsie.USER (_("Please enter a valid instance URL"));
 	}
 
 	async void register_client () throws Error {
 		message ("Registering client");
 
-		var msg = new Request.POST (@"/api/v1/apps")
+		var req = new Request.POST (@"/api/v1/apps")
 			.with_account (account)
 			.with_form_data ("client_name", Build.NAME)
 			.with_form_data ("redirect_uris", redirect_uri = setup_redirect_uri ())
 			.with_form_data ("scopes", scopes)
 			.with_form_data ("website", Build.WEBSITE);
-		yield msg.await ();
+		yield req.await ();
 
-		var root = network.parse (msg);
+		var root = network.parse (req);
 		account.client_id = root.get_string_member ("client_id");
 		account.client_secret = root.get_string_member ("client_secret");
 		message ("OK: Instance registered client");
@@ -131,7 +131,7 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 		message ("Opening permission request page");
 
 		var pars = @"scope=$scopes&response_type=code&redirect_uri=$redirect_uri&client_id=$(account.client_id)";
-		var url = @"$(account.instance)/oauth/authorize?$pars";
+		var url = @"$(account.instance.to_string())/oauth/authorize?$pars";
 		Host.open_uri (url);
 	}
 

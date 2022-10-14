@@ -119,7 +119,7 @@ public class Tootle.API.Status : Entity, Widgetizable {
 
     public Request action (string action) {
         var req = new Request.POST (@"/api/v1/statuses/$(formal.id)/$action").with_account (accounts.active);
-        req.priority = Soup.MessagePriority.HIGH;
+        req.msg.priority = Soup.MessagePriority.HIGH;
         return req;
     }
 

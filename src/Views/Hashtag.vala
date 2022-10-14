@@ -9,7 +9,7 @@ public class Tootle.Views.Hashtag : Views.Timeline {
 
     public override string? get_stream_url () {
         var tag = url.substring (4);
-        return account != null ? @"$(account.instance)/api/v1/streaming/?stream=hashtag&tag=$tag&access_token=$(account.access_token)" : null;
+        return account != null ? @"$(account.instance.to_string())/api/v1/streaming/?stream=hashtag&tag=$tag&access_token=$(account.access_token)" : null;
     }
 
 }

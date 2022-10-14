@@ -249,7 +249,7 @@ public class Tootle.Views.Profile : Views.Timeline {
 	}
 
 	public static void open_from_id (string id) {
-		var msg = new Soup.Message ("GET", @"$(accounts.active.instance)/api/v1/accounts/$id");
+		var msg = new Tootle.Request.GET(@"$(accounts.active.instance)/api/v1/accounts/$id");
 		network.queue (msg, (sess, mess) => {
 			var node = network.parse_node (mess);
 			var acc = API.Account.from (node);

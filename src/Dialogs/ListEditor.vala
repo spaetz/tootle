@@ -51,7 +51,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 	public bool exists { get; set; default = false; }
 	public bool dirty { get; set; default = false; }
 
-	Soup.Message? search_req = null;
+	Tootle.Request? search_req = null;
 
 	public Gee.ArrayList<string> to_add = new Gee.ArrayList<string> ();
 	public Gee.ArrayList<string> to_remove = new Gee.ArrayList<string> ();
@@ -85,17 +85,17 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 		init ();
 
 		new Request.GET (@"/api/v1/lists/$(list.id)/accounts")
-			.with_account (accounts.active)
-			.with_ctx (this)
-			.on_error (on_error)
-			.then ((sess, msg) => {
-				Network.parse_array (msg, node => {
-					var acc = API.Account.from (node);
-					add_account (acc, true);
-				});
-				working = false;
-			})
-			.exec ();
+		  .with_account (accounts.active)
+		  .with_ctx (this)
+		  .on_error (on_error)
+		  .then ((sess, req) => {
+		      Network.parse_array (req, node => {
+			  var acc = API.Account.from (node);
+			  add_account (acc, true);
+			});
+		      working = false;
+		  })
+		  .exec ();
 	}
 
 	void init () {
@@ -130,8 +130,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 	void request_search (string q) {
 		debug (@"Searching for: \"$q\"...");
 		if (search_req != null) {
-			network.cancel (search_req);
-			search_req = null;
+			search_req.cancel ();
 		}
 
 		search_req = new Request.GET ("/api/v1/accounts/search")
@@ -141,8 +140,8 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 			.with_param ("limit", "8")
 			.with_param ("following", "true")
 			.with_param ("q", q)
-			.then ((sess, msg) => {
-				Network.parse_array (msg, node => {
+			.then ((sess, req) => {
+				Network.parse_array (req, node => {
 					var acc = API.Account.from (node);
 					add_account (acc, false, 0);
 				});

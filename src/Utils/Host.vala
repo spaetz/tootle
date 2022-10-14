@@ -67,12 +67,12 @@ public class Tootle.Host {
 		var file = File.new_for_path (file_path);
 
 		if (!file.query_exists ()) {
-			var msg = yield new Request.GET (url)
+			var req = yield new Request.GET (url)
 				.await ();
 
-			var data = msg.response_body.data;
+			var data = req.response_body;
 			FileOutputStream stream = file.create (FileCreateFlags.PRIVATE);
-			stream.write (data);
+			stream.write_bytes (data);
 
 			message (@"   OK: File written to: $file_path");
 		}

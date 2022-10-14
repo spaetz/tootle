@@ -5,7 +5,7 @@ public class Tootle.AbstractCache : Object {
 	public const string DATA_MIN_REF_COUNT = "refs";
 
     protected Map<string, Object> items;
-    protected Map<string, Soup.Message> items_in_progress;
+    protected Map<string, Tootle.Request> items_in_progress;
 
     public int maintenance_secs { get; set; default = 5; }
     public uint size {
@@ -14,7 +14,7 @@ public class Tootle.AbstractCache : Object {
 
     construct {
         items = new HashMap<string, Object> ();
-        items_in_progress = new HashMap<string, Soup.Message> ();
+        items_in_progress = new HashMap<string, Tootle.Request> ();
 
         Timeout.add_seconds (maintenance_secs, maintenance_func, Priority.LOW);
     }

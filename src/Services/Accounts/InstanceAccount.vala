@@ -8,7 +8,7 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 	public const string EVENT_NOTIFICATION = "notification";
 
 	public string? backend { set; get; }
-	public string? instance { get; set; }
+	public GLib.Uri? instance { get; set; }
 	public string? client_id { get; set; }
 	public string? client_secret { get; set; }
 	public string? access_token { get; set; }
@@ -51,10 +51,11 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 		destruct_streamable ();
 	}
 
-	public InstanceAccount.empty (string instance){
+	/* Create a new empty account. setting base_uri to the empty string, will make instance null */
+	public InstanceAccount.empty (string base_uri){
 		Object (
 			id: "",
-			instance: instance
+			instance: Uri.parse(base_uri, UriFlags.NONE) ?? null
 		);
 	}
 

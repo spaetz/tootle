@@ -21,8 +21,8 @@ public class Tootle.API.Relationship : Entity {
 		new Request.GET ("/api/v1/accounts/relationships")
 			.with_account (accounts.active)
 			.with_param ("id", id)
-			.then ((sess, msg) => {
-				Network.parse_array (msg, node => {
+			.then ((sess, req) => {
+				Network.parse_array (req, node => {
 					invalidate (node);
 				});
 			})
