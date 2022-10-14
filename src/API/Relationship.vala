@@ -18,8 +18,7 @@ public class Tootle.API.Relationship : Entity {
 	}
 
 	public void request () {
-		new Request.GET ("/api/v1/accounts/relationships")
-			.with_account (accounts.active)
+		new Request.GET ("/api/v1/accounts/relationships", accounts.active)
 			.with_param ("id", id)
 			.then ((sess, req) => {
 				Network.parse_array (req, node => {
@@ -36,8 +35,7 @@ public class Tootle.API.Relationship : Entity {
 	}
 
 	public void modify (string operation, string? param = null, string? val = null) {
-		var req = new Request.POST (@"/api/v1/accounts/$id/$operation")
-			.with_account (accounts.active)
+		var req = new Request.POST (@"/api/v1/accounts/$id/$operation", accounts.active)
 			.then ((sess, msg) => {
 				var node = network.parse_node (msg);
 				invalidate (node);

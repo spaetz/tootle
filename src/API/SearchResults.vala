@@ -22,8 +22,7 @@ public class Tootle.API.SearchResults : Entity {
 	}
 
 	public static async SearchResults request (string q, InstanceAccount account) throws Error {
-		var req = new Request.GET ("/api/v2/search")
-			.with_account (account)
+		var req = new Request.GET ("/api/v2/search", account)
 			.with_param ("resolve", "true")
 			.with_param ("q", GLib.Uri.escape_string (q));
 		yield req.await ();

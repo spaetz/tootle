@@ -181,8 +181,7 @@ public class Tootle.Views.Profile : Views.Timeline {
 			);
 
 			if (yes) {
-				var req = new Request.POST ("/api/v1/domain_blocks")
-					.with_account (accounts.active)
+				var req = new Request.POST ("/api/v1/domain_blocks", accounts.active)
 					.with_param ("domain", profile.domain)
 					.then (() => {
 						rs.request ();

@@ -8,7 +8,7 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 	public const string EVENT_NOTIFICATION = "notification";
 
 	public string? backend { set; get; }
-	public GLib.Uri? instance { get; set; }
+	public string? instance { set; get; }
 	public string? client_id { get; set; }
 	public string? client_secret { get; set; }
 	public string? access_token { get; set; }
@@ -53,10 +53,10 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 
 	/* Create a new empty account. setting base_uri to the empty string, will make instance null */
 	public InstanceAccount.empty (string base_uri){
-		Object (
-			id: "",
-			instance: Uri.parse(base_uri, UriFlags.NONE) ?? null
-		);
+	  Object (
+		  id: "",
+		  instance: base_uri
+	    );
 	}
 
 
@@ -96,7 +96,7 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 	}
 
 	public async void verify_credentials () throws Error {
-		var req = new Request.GET ("/api/v1/accounts/verify_credentials").with_account (this);
+		var req = new Request.GET ("/api/v1/accounts/verify_credentials", this);
 		yield req.await ();
 
 		var node = network.parse_node (req);
@@ -132,10 +132,9 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 	public ArrayList<Object> notification_inhibitors { get; set; default = new ArrayList<Object> (); }
 
 	public virtual void check_notifications () {
-		new Request.GET ("/api/v1/markers?timeline[]=notifications")
-			.with_account (this)
-			.then ((sess, msg) => {
-				var root = network.parse (msg);
+		new Request.GET ("/api/v1/markers?timeline[]=notifications", this)
+			.then ((sess, req) => {
+				var root = network.parse (req);
 				var notifications = root.get_object_member ("notifications");
 				last_read_id = int.parse (notifications.get_string_member ("last_read_id") );
 			})
@@ -182,7 +181,8 @@ public class Tootle.InstanceAccount : API.Account, Streamable {
 	public bool subscribed { get; set; }
 
 	public virtual string? get_stream_url () {
-		return @"$instance/api/v1/streaming/?stream=user&access_token=$access_token";
+	  //returns the relative stream URL
+	  return @"/api/v1/streaming/?stream=user&access_token=$(access_token ?? "")";
 	}
 
 	public virtual void on_notification_event (Streamable.Event ev) {

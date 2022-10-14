@@ -32,8 +32,7 @@ public class Tootle.Views.Lists : Views.Timeline {
 				_("This action cannot be reverted.")
 			);
 			if (remove) {
-				new Request.DELETE (@"/api/v1/lists/$(list.id)")
-					.with_account (accounts.active)
+				new Request.DELETE (@"/api/v1/lists/$(list.id)", accounts.active)
 					.then (() => { this.destroy (); })
 					.exec ();
 			}

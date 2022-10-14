@@ -100,18 +100,17 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 			.replace (":", "")
 			.replace ("https", "")
 			.replace ("http", "");
-		account.instance = GLib.Uri.parse("https://"+str, UriFlags.NONE);
+		account.instance = "https://" + str;
 		instance_entry.text = str;
 
-		if (str.char_count () <= 0 || !("." in account.instance.to_string()))
+		if (str.char_count () <= 0 || !("." in account.instance))
 		  throw new Oopsie.USER (_("Please enter a valid instance URL"));
 	}
 
 	async void register_client () throws Error {
 		message ("Registering client");
 
-		var req = new Request.POST (@"/api/v1/apps")
-			.with_account (account)
+		var req = new Request.POST (@"/api/v1/apps", account)
 			.with_form_data ("client_name", Build.NAME)
 			.with_form_data ("redirect_uris", redirect_uri = setup_redirect_uri ())
 			.with_form_data ("scopes", scopes)
@@ -131,7 +130,7 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 		message ("Opening permission request page");
 
 		var pars = @"scope=$scopes&response_type=code&redirect_uri=$redirect_uri&client_id=$(account.client_id)";
-		var url = @"$(account.instance.to_string())/oauth/authorize?$pars";
+		var url = @"$(account.instance)/oauth/authorize?$pars";
 		Host.open_uri (url);
 	}
 
@@ -140,8 +139,7 @@ public class Tootle.Dialogs.NewAccount: Adw.Window {
 			throw new Oopsie.USER (_("Please enter a valid authorization code"));
 
 		message ("Requesting access token");
-		var token_req = new Request.POST (@"/oauth/token")
-			.with_account (account)
+		var token_req = new Request.POST (@"/oauth/token", account)
 			.with_param ("client_id", account.client_id)
 			.with_param ("client_secret", account.client_secret)
 			.with_param ("redirect_uri", redirect_uri)

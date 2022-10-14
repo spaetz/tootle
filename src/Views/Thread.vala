@@ -53,8 +53,7 @@ public class Tootle.Views.Thread : Views.ContentBase, AccountHolder {
 	}
 
 	public void request () {
-		new Request.GET (@"/api/v1/statuses/$(root_status.id)/context")
-			.with_account (account)
+		new Request.GET (@"/api/v1/statuses/$(root_status.id)/context", account)
 			.with_ctx (this)
 			.then ((sess, msg) => {
 				var root = network.parse (msg);
@@ -90,7 +89,6 @@ public class Tootle.Views.Thread : Views.ContentBase, AccountHolder {
 
 	public static void open_from_link (string q) {
 		new Request.GET ("/api/v1/search")
-			.with_account ()
 			.with_param ("q", q)
 			.with_param ("resolve", "true")
 			.then ((sess, msg) => {

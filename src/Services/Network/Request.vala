@@ -32,21 +32,39 @@ public class Tootle.Request {
   weak Gtk.Widget? ctx;
   bool has_ctx = false;
 
-  public Request.GET (string uri) {
-    this._msg = new Message ("GET", uri);
-    _msg.accept_certificate.connect (this.on_accept_certificate);
+  public Request.GET (string uri, InstanceAccount? account=null) {
+    string url;
+    if (account != null) url = make_absolute_url(account.instance, uri); else url = uri;
+    this._msg = new Soup.Message ("GET", url);
+    if (this._msg == null) {
+      message (@"uri could not be parsed $(this._msg != null ? "MSG": "NULL")");
+    }
   }
-  public Request.POST (string uri) {
-    this._msg = new Message ("POST", uri);
-    _msg.accept_certificate.connect (this.on_accept_certificate);
+  public Request.POST (string uri, InstanceAccount? account=null) {
+    string url;
+    if (account != null) url = make_absolute_url(account.instance, uri); else url = uri;
+    this._msg = new Soup.Message ("POST", url);
+    if (this._msg == null) {
+      message (@"uri could not be parsed $(this._msg != null ? "MSG": "NULL")");
+    }
   }
-  public Request.PUT (string uri) {
-    this._msg = new Message ("PUT", uri);
-    _msg.accept_certificate.connect (this.on_accept_certificate);
+  public Request.PUT (string uri, InstanceAccount? account=null) {
+    string url;
+    if (account != null)
+      url = make_absolute_url(account.instance, uri);
+      else url = uri;
+    this._msg = new Soup.Message ("PUT", url);
+    if (this._msg == null) {
+      message (@"uri could not be parsed $(this._msg != null ? "MSG": "NULL")");
+    }
   }
-  public Request.DELETE (string uri) {
-    this._msg = new Message ("DELETE", uri);
-    _msg.accept_certificate.connect (this.on_accept_certificate);
+  public Request.DELETE (string uri, InstanceAccount? account=null) {
+    string url;
+    if (account != null) url = make_absolute_url(account.instance, uri); else url = uri;
+    this._msg = new Soup.Message ("DELETE", url);
+    if (this._msg == null) {
+      message (@"uri could not be parsed $(this._msg != null ? "MSG": "NULL")");
+    }
   }
 
 	// ~Request () {
@@ -80,11 +98,6 @@ public class Tootle.Request {
     return this;
   }
 
-  public Request with_account (InstanceAccount? account = null) {
-    this.account = account;
-    return this;
-  }
-
   public Request with_param (string name, string val) {
     if (pars == null)
       pars = new HashMap<string, string> ();
@@ -100,45 +113,54 @@ public class Tootle.Request {
     return this;
   }
 
-  public Request exec () {
-    string query = "";
- 
-    var parameters_counter = 0;
-    pars.@foreach (entry => {
-	parameters_counter++;
-	var key = (string) entry.key;
-	var val = (string) entry.value;
-	query += @"$key=$val";
-	  
-	if (parameters_counter < pars.size)
-	  query += "&";
+  // check uri and if it is not absolute make it so with the information from .account
+  private string make_absolute_url(string base_uri, string uri_str) {
+    string res_str;
+    message(@"Prejoin URI is $(uri_str), base_uri is $(base_uri)");
+    try {
+      // parse uri and, if it is a relative URI, resolves it relative to the base_uri_string account.instance
+      res_str = Uri.resolve_relative (base_uri, uri_str, GLib.UriFlags.NONE);
+    } catch (UriError e) {
+      warning ("Error making uri $(uri_str) absolute. Account $(account.instance)");
+      res_str = "";
+    }
+    message(@"Postjoin URI is $(res_str)");
+    return (res_str);
+  }
 
-	return true;
-      });
-    
+
+  public Request exec () {    
     if (form_data != null) {
       // Replace _msg with new Message from our multipart form, keeping the previous uri
       this._msg = new Soup.Message.from_multipart (this._msg.uri.to_string(), form_data);
     }
-
+    message (@"NOOO msg $(this._msg != null ? "MSG": "NULL")");
     if (account != null) {
-      _msg.request_headers.append ("Authorization", @"Bearer $(account.access_token)");
+      this._msg.request_headers.append ("Authorization", @"Bearer $(account.access_token)");
     }
 
-    message(@"Prejoin URI is $(this.uri)");
-    // msg.uri can be a relative URL without scheme-host-port _or_ be absolute, so add the host if it is relative
-    if (this.uri.get_host() == null)
-      try {
-	// parse uri and, if it is a relative URI, resolves it relative to the base_uri_string account.instance
-	this.uri = Uri.parse_relative (account.instance, this.uri.to_string(), GLib.UriFlags.NONE);
-      } catch (UriError e) {
-      warning ("Error munging URI %(this.uri.to_string() ?? ''");
-    }
+    var abs_uri_str = this.uri.to_string();
 
-    if (query.length > 0) {
-      this.uri = Uri.parse(this.uri.to_string() + query, GLib.UriFlags.NONE);
-    }
-    message(@"Finnal URI is $(uri)");
+    // Add in our query string
+    if (pars != null) {
+      string query = "";
+      var parameters_counter = 0;
+      pars.@foreach (entry => {
+	  parameters_counter++;
+	  var key = (string) entry.key;
+	  var val = (string) entry.value;
+	  query += @"$key=$val";
+
+	  if (parameters_counter < pars.size)
+	    query += "&";
+
+	  return true;
+      });
+      abs_uri_str = abs_uri_str + query;
+    };
+
+    this.uri = Uri.parse(abs_uri_str, GLib.UriFlags.NONE);
+    message(@"Finnal URI is $(this.uri)");
     network.queue (this, (owned) cb, (owned) error_cb);
     return this;
   }
@@ -161,17 +183,6 @@ public class Tootle.Request {
       return this;
   }
 
-  // handler to bail out on cert errors (formerly ssl_strict)
-  private bool on_accept_certificate (TlsCertificate certificate, TlsCertificateFlags errors) {
-    /* Errors is one of: https://valadoc.org/gio-2.0/GLib.TlsCertificateFlags.html */
-    if (errors == 0) {
-      // TODO Check for TlsCertificateFlags.NO_FLAGS available since glib : 2.74
-      return true;
-    }
-    /* TODO: handle and inform user about the type of TLS error */
-    warning ("Not accepting invalid certificate for %(certificate.get_subject_name() ?? ''");
-    return false;
-  }
 
   public static string array2string (Gee.ArrayList<string> array, string key) {
     var result = "";
@@ -187,7 +198,7 @@ public class Tootle.Request {
   // Cancel an ongoing Soup.Message.
   // TODO: Need to pass this.cancellable actually into cancellable operations
   public void cancel () {
-    info ("Cancelling message");
+    info ("Cancelling Network Request");
     if (this.cancellable.is_cancelled ()) {
 	     // should not occur?
 	     info ("Oops, message was already cancelled.");

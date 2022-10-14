@@ -18,8 +18,7 @@ public class Tootle.API.Conversation : Entity, Widgetizable {
 	}
 
 	public void mark_read () {
-		new Request.POST (@"/api/v1/conversations/$id/read")
-			.with_account (Tootle.accounts.active)
+		new Request.POST (@"/api/v1/conversations/$id/read", Tootle.accounts.active)
 			.then (() => {
 				unread = false;
 			})

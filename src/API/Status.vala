@@ -118,14 +118,13 @@ public class Tootle.API.Status : Entity, Widgetizable {
     }
 
     public Request action (string action) {
-        var req = new Request.POST (@"/api/v1/statuses/$(formal.id)/$action").with_account (accounts.active);
+        var req = new Request.POST (@"/api/v1/statuses/$(formal.id)/$action", accounts.active);
         req.msg.priority = Soup.MessagePriority.HIGH;
         return req;
     }
 
     public Request annihilate () {
-        return new Request.DELETE (@"/api/v1/statuses/$id")
-        	.with_account (accounts.active);
+        return new Request.DELETE (@"/api/v1/statuses/$id", accounts.active);
     }
 
 }

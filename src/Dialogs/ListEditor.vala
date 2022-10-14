@@ -84,8 +84,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 		Object (list: list, working: true, exists: true);
 		init ();
 
-		new Request.GET (@"/api/v1/lists/$(list.id)/accounts")
-		  .with_account (accounts.active)
+		new Request.GET (@"/api/v1/lists/$(list.id)/accounts", accounts.active)
 		  .with_ctx (this)
 		  .on_error (on_error)
 		  .then ((sess, req) => {
@@ -133,8 +132,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 			search_req.cancel ();
 		}
 
-		search_req = new Request.GET ("/api/v1/accounts/search")
-			.with_account (accounts.active)
+		search_req = new Request.GET ("/api/v1/accounts/search", accounts.active)
 			.with_ctx (this)
 			.with_param ("resolve", "false")
 			.with_param ("limit", "8")
@@ -230,8 +228,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 	async void transaction () throws Error {
 		if (!exists) {
 			message ("Creating list...");
-			var req = new Request.POST ("/api/v1/lists")
-				.with_account (accounts.active)
+			var req = new Request.POST ("/api/v1/lists", accounts.active)
 				.with_param ("title", name_entry.text);
 			yield req.await ();
 
@@ -241,8 +238,7 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 		}
 		else {
 			message ("Updating list title...");
-			yield new Request.PUT (@"/api/v1/lists/$(list.id)")
-				.with_account (accounts.active)
+			yield new Request.PUT (@"/api/v1/lists/$(list.id)", accounts.active)
 				.with_param ("title", name_entry.text)
 				.await ();
 		}
@@ -250,16 +246,14 @@ public class Tootle.Dialogs.ListEditor: Adw.Window {
 		if (!to_add.is_empty) {
 			message ("Adding accounts to list...");
 			var id_array = Request.array2string (to_add, "account_ids");
-		 	yield new Request.POST (@"/api/v1/lists/$(list.id)/accounts/?$id_array")
-		 		.with_account (accounts.active)
+		 	yield new Request.POST (@"/api/v1/lists/$(list.id)/accounts/?$id_array", accounts.active)
 		 		.await ();
 		}
 
 		if (!to_remove.is_empty) {
 			message ("Removing accounts from list...");
 			var id_array = Request.array2string (to_remove, "account_ids");
-		 	yield new Request.DELETE (@"/api/v1/lists/$(list.id)/accounts/?$id_array")
-		 		.with_account (accounts.active)
+		 	yield new Request.DELETE (@"/api/v1/lists/$(list.id)/accounts/?$id_array", accounts.active)
 		 		.await ();
 		}
 

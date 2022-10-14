@@ -23,6 +23,7 @@ public abstract interface Tootle.Streamable : Object {
 	public abstract string? connection_url { get; set; }
 	public abstract bool subscribed { get; set; default = false; }
 
+    /* returns the relative stream url */
     public abstract string? get_stream_url ();
 
     [Signal (detailed = true)]

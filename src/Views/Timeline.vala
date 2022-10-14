@@ -81,23 +81,22 @@ public class Tootle.Views.Timeline : AccountHolder, Streamable, Views.ContentBas
 	public virtual void on_request_finish () {}
 
 	public virtual bool request () {
-		var req = append_params (new Request.GET (get_req_url ()))
-		.with_account (account)
-		.with_ctx (this)
-		.then ((sess, req) => {
-			Network.parse_array (req, node => {
-			    var e = entity_cache.lookup_or_insert (node, accepts);
-			    model.append (e); //FIXME: use splice();
-			});
+	  var req = append_params (new Request.GET (get_req_url (), account))
+	    .with_ctx (this)
+	    .then ((sess, req) => {
+		Network.parse_array (req, node => {
+		    var e = entity_cache.lookup_or_insert (node, accepts);
+		    model.append (e); //FIXME: use splice();
+		  });
 
-			get_pages (req.msg.response_headers.get_one ("Link"));
-			on_content_changed ();
-			on_request_finish ();
-		})
-		.on_error (on_error);
-		req.exec ();
+		get_pages (req.msg.response_headers.get_one ("Link"));
+		on_content_changed ();
+		on_request_finish ();
+	    })
+	    .on_error (on_error);
+	  req.exec ();
 
-		return GLib.Source.REMOVE;
+	  return GLib.Source.REMOVE;
 	}
 
 	public virtual void on_refresh () {

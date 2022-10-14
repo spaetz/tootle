@@ -116,7 +116,7 @@ public class Tootle.Dialogs.Compose : Adw.Window {
 	protected signal void modify_req (Request req);
 
 	protected virtual async void transaction () throws Error {
-		var publish_req = new Request.POST("/api/v1/statuses").with_account(accounts.active);
+		var publish_req = new Request.POST("/api/v1/statuses", accounts.active);
 		modify_req (publish_req);
 		yield publish_req.await ();
 

@@ -133,24 +133,23 @@ public abstract class Tootle.AccountStore : GLib.Object {
 	public Gee.ArrayList<BackendTest> backend_tests = new Gee.ArrayList<BackendTest> ();
 
 	public async void guess_backend (InstanceAccount account) throws GLib.Error {
-		var req = new Request.GET ("/api/v1/instance")
-			.with_account (account);
-		yield req.await ();
+	  var req = new Request.GET ("/api/v1/instance", account);
+	  yield req.await ();
 
-		var root = network.parse (req);
+	  var root = network.parse (req);
 
-		string? backend = null;
-		backend_tests.foreach (test => {
-			backend = test.get_backend (root);
-			return true;
-		});
+	  string? backend = null;
+	  backend_tests.foreach (test => {
+	      backend = test.get_backend (root);
+	      return true;
+	  });
 
-		if (backend == null)
-			throw new Oopsie.INTERNAL ("This instance is unsupported.");
-		else {
-			account.backend = backend;
-			message (@"$(account.instance.to_string()) is using $(account.backend)");
-		}
+	  if (backend == null)
+	    throw new Oopsie.INTERNAL ("This instance is unsupported.");
+	  else {
+	    account.backend = backend;
+	    message (@"$(account.instance.to_string()) is using $(account.backend)");
+	  }
 	}
 
 }
